@@ -14,13 +14,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     // Mengubah status tugas
     if (isset($_POST['status'])) {
         foreach ($_SESSION['tasks'] as &$task) {
-            if (isset($_POST['status'][$task['id']])) {
-                // Jika checkbox dicentang, set status ke 'selesai'
-                $task['status'] = 'selesai';
-            } else {
-                // Jika checkbox tidak dicentang, set status ke 'belum'
-                $task['status'] = 'belum';
-            }
+            // Jika checkbox dicentang, set status ke 'selesai', jika tidak, set ke 'belum'
+            $task['status'] = isset($_POST['status'][$task['id']]) ? 'selesai' : 'belum';
         }
     }
 
@@ -35,11 +30,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     // Menambahkan tugas baru
     if (!empty($_POST['task_title'])) {
         $newTask = [
-            "id" => count($_SESSION['tasks']) + 1, // Menggunakan count untuk ID baru
+            "id" => count($_SESSION['tasks']) + 1,
             "title" => $_POST['task_title'],
             "status" => "belum"
         ];
-        $_SESSION['tasks'][] = $newTask; // Menambahkan tugas baru ke dalam session
+        $_SESSION['tasks'][] = $newTask;
     }
 
     // Mengedit tugas
@@ -48,7 +43,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $editTitle = $_POST['edit_title'];
         foreach ($_SESSION['tasks'] as &$task) {
             if ($task['id'] == $editId) {
-                $task['title'] = $editTitle; // Update judul tugas
+                $task['title'] = $editTitle;
             }
         }
     }
@@ -59,10 +54,11 @@ function tampilkanDaftar($tasks) {
     foreach ($tasks as $task) {
         echo "<li class='list-group-item d-flex justify-content-between align-items-center'>";
         echo "<form method='POST' action='' class='w-100 d-flex justify-content-between align-items-center'>";
-        // Checkbox untuk mengubah status
         echo "<input type='checkbox' onchange='this.form.submit()' name='status[{$task['id']}]' " . ($task['status'] === 'selesai' ? 'checked' : '') . ">";
         echo "<span class='ml-2'>{$task['title']} - Status: {$task['status']}</span>";
-        echo "<button type='button' class='btn btn-warning btn-sm' onclick='editTask({$task['id']}, \"{$task['title']}\")'>Edit</button>";
+        echo "<input type='hidden' name='edit_id' value='{$task['id']}'>";
+        echo "<input type='text' name='edit_title' placeholder='Edit tugas' class='form-control mx-2' style='width: 200px;'>";
+        echo "<button type='submit' class='btn btn-warning btn-sm'>Edit</button>";
         echo "<button type='submit' name='delete' value='{$task['id']}' class='btn btn-danger btn-sm'>Hapus</button>";
         echo "</form>";
         echo "</li>";
@@ -77,31 +73,6 @@ function tampilkanDaftar($tasks) {
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Aplikasi To-Do List</title>
     <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
-    <script>
-        function editTask(id, title) {
-            const newTitle = prompt("Edit Tugas:", title);
-            if (newTitle !== null) {
-                const form = document.createElement('form');
-                form.method = 'POST';
-                form.action = '';
-                
-                const inputId = document.createElement('input');
-                inputId.type = 'hidden';
-                inputId.name = 'edit_id';
-                inputId.value = id;
-                form.appendChild(inputId);
-                
-                const inputTitle = document.createElement('input');
-                inputTitle.type = 'hidden';
-                inputTitle.name = 'edit_title';
-                inputTitle.value = newTitle;
-                form.appendChild(inputTitle);
-                
-                document.body.appendChild(form);
-                form.submit();
-            }
-        }
-    </script>
 </head>
 <body>
     <div class="container mt-5">
