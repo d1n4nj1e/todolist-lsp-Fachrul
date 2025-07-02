@@ -10,6 +10,7 @@ Aplikasi Sederhana berbasis PHP untuk mencatat tugas harian.
 
 ## Struktur folder
 -Index.php - halaman utama
+
 -style.css - file css
 
 ## Cara menjalankan
