@@ -5,7 +5,9 @@ Aplikasi Sederhana berbasis PHP untuk mencatat tugas harian.
 
 ## Fitur
 -Tambah tugas
+
 -Tandai Tugas Selesai
+
 -Hapus Tugas
 
 ## Struktur folder
