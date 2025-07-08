@@ -1,6 +1,6 @@
 # Aplikasi To-Do-List
 
-##Deskripsi
+## Deskripsi
 Aplikasi Sederhana berbasis PHP untuk mencatat tugas harian.
 
 ## Fitur
