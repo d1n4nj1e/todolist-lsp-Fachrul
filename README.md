@@ -3,17 +3,22 @@
 ## Deskripsi
 Aplikasi Sederhana berbasis PHP untuk mencatat tugas harian.
 
-## Fitur
--Tambah tugas
 
--Tandai Tugas Selesai
+## Features
 
--Hapus Tugas
+- Tambah tugas
+- Tandai Tugas Selesai
+- Hapus Tugas
+
 
 ## Struktur folder
--Index.php - halaman utama
 
--style.css - file css
+```bash
+└── todolist/
+    ├── index.php
+    └── style.css
+```
+    
 
 ## Cara menjalankan
 1. Salin ke folder 'htdocs/'
