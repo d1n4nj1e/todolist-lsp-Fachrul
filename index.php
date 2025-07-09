@@ -1,62 +1,79 @@
 <?php
 session_start();
 
-// Inisialisasi array tugas jika belum ada
-if (!isset($_SESSION['tasks'])) {
-  $_SESSION['tasks'] = [
-    ["id" => 1, "title" => "Belajar PHP", "status" => "belum"],
-    ["id" => 2, "title" => "kerjakan tugas UX", "status" => "selesai"],
-  ];
+$defaultTasks = [
+  ["id" => 1, "title" => "Belajar PHP", "status" => "belum"],
+  ["id" => 2, "title" => "kerjakan tugas UX", "status" => "selesai"],
+];
+
+if (!isset($_SESSION['tasks']) || empty($_SESSION['tasks'])) {
+  $_SESSION['tasks'] = $defaultTasks;
 }
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-  // perbaiki ini
-  foreach ($_SESSION['tasks'] as $i => $task) {
-    $_SESSION['tasks'][$i]['status'] =
-      isset($_POST['status'][$task['id']]) ? 'selesai' : 'belum';
+  // AJAX: toggle status
+  if (isset($_POST['toggle_id'])) {
+    header('Content-Type: application/json');
+    foreach ($_SESSION['tasks'] as &$task) {
+      if ($task['id'] == $_POST['toggle_id']) {
+        $task['status'] = $task['status'] === 'selesai' ? 'belum' : 'selesai';
+        echo json_encode(['status' => $task['status']]);
+        exit;
+      }
+    }
+    echo json_encode(['error' => 'Task not found']);
+    exit;
   }
 
-  // Menghapus tugas
-  if (isset($_POST['delete'])) {
-    $idToDelete = $_POST['delete'];
-    $_SESSION['tasks'] = array_filter($_SESSION['tasks'], function ($task) use ($idToDelete) {
-      return $task['id'] != $idToDelete;
-    });
-  }
-
-  // Menambahkan tugas baru
+  // Tambah tugas
   if (!empty($_POST['task_title'])) {
     $newTask = [
-      "id" => count($_SESSION['tasks']) + 1,
+      "id" => time(),
       "title" => $_POST['task_title'],
       "status" => "belum"
     ];
     $_SESSION['tasks'][] = $newTask;
+    header('Location: ' . $_SERVER['PHP_SELF']);
+    exit;
   }
 
-  // Mengedit tugas
-  if (isset($_POST['edit_id']) && !empty($_POST['edit_title'])) {
-    $editId = $_POST['edit_id'];
-    $editTitle = $_POST['edit_title'];
+  // Edit tugas
+  if (isset($_POST['edit_id']) && isset($_POST['edit_title'])) {
     foreach ($_SESSION['tasks'] as &$task) {
-      if ($task['id'] == $editId) {
-        $task['title'] = $editTitle;
+      if ($task['id'] == $_POST['edit_id']) {
+        $task['title'] = $_POST['edit_title'];
+        break;
       }
     }
+    header('Location: ' . $_SERVER['PHP_SELF']);
+    exit;
+  }
+
+  // Hapus tugas
+  if (isset($_POST['delete'])) {
+    $idToDelete = $_POST['delete'];
+    $_SESSION['tasks'] = array_values(array_filter($_SESSION['tasks'], function ($task) use ($idToDelete) {
+      return (string)$task['id'] !== (string)$idToDelete;
+    }));
+    header('Location: ' . $_SERVER['PHP_SELF']);
+    exit;
   }
 }
 
-// Fungsi untuk menampilkan daftar tugas
 function tampilkanDaftar($tasks)
 {
   foreach ($tasks as $task) {
+    if (!isset($task['title']) || trim($task['title']) === '') continue;
+    $checked = $task['status'] === 'selesai' ? 'checked' : '';
     echo "<li class='list-group-item d-flex justify-content-between align-items-center'>";
-    echo "<form method='POST' action='' class='w-100 d-flex justify-content-between align-items-center'>";
-    echo "<input type='checkbox' onchange='this.form.submit()' name='status[{$task['id']}]' " . ($task['status'] === 'selesai' ? 'checked' : '') . ">";
-    echo "<span class='ml-2'>{$task['title']} - Status: {$task['status']}</span>";
+    echo "<div class='form-check'>";
+    echo "<input class='form-check-input status-checkbox' type='checkbox' data-id='{$task['id']}' {$checked}>";
+    echo "<label class='form-check-label ml-2'>{$task['title']} - Status: <span class='task-status'>{$task['status']}</span></label>";
+    echo "</div>";
+    echo "<form method='POST' action='' class='d-flex align-items-center ml-3'>";
     echo "<input type='hidden' name='edit_id' value='{$task['id']}'>";
     echo "<input type='text' name='edit_title' placeholder='Edit tugas' class='form-control mx-2' style='width: 200px;'>";
-    echo "<button type='submit' class='btn btn-warning btn-sm'>Edit</button>";
+    echo "<button type='submit' class='btn btn-warning btn-sm mr-1'>Edit</button>";
     echo "<button type='submit' name='delete' value='{$task['id']}' class='btn btn-danger btn-sm'>Hapus</button>";
     echo "</form>";
     echo "</li>";
@@ -94,6 +111,28 @@ function tampilkanDaftar($tasks)
       <?php tampilkanDaftar($_SESSION['tasks']); ?>
     </ul>
   </div>
+
+  <script>
+    document.querySelectorAll('.status-checkbox').forEach(cb => {
+      cb.addEventListener('change', function() {
+        fetch('', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/x-www-form-urlencoded'
+            },
+            body: new URLSearchParams({
+              toggle_id: this.dataset.id
+            })
+          })
+          .then(res => res.json())
+          .then(data => {
+            if (data.status) {
+              this.closest('li').querySelector('.task-status').textContent = data.status;
+            }
+          });
+      });
+    });
+  </script>
 
   <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.9.2/dist/umd/popper.min.js"></script>
