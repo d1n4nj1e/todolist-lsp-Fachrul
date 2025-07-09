@@ -4,7 +4,10 @@ session_start();
 
 // Inisialisasi array tugas jika belum ada
 if (!isset($_SESSION['tasks'])) {
-    $_SESSION['tasks'] = [];
+    $_SESSION['tasks'] = [
+        ['name' => 'Belajar PHP', 'status' => false],
+        ['name' => 'Kerjakan tugas UX', 'status' => true],
+    ];
 }
 
 // Tambah tugas
@@ -63,6 +66,9 @@ if (isset($_POST['edit']) && isset($_POST['edit_task'])) {
                         </form>
                     <?php else: ?>
                         <span><?php echo $task['name']; ?></span>
+                        <span class="status <?php echo $task['status'] ? 'done' : 'pending'; ?>">
+                            [<?php echo $task['status'] ? 'Selesai' : 'Belum'; ?>]
+                        </span>
                         <form method="POST" class="inline-form">
                             <input type="hidden" name="edit_mode" value="<?php echo $index; ?>">
                             <button type="submit">Edit</button>
